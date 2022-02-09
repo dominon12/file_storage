@@ -16,12 +16,19 @@ class ImageListOrCreate(APIView):
     
     def get(self, request, *args, **kwargs):
         queryset = self.queryset.filter(owner=request.user)
-        serializer = self.serializer_class(instance=queryset, many=True)
+        serializer = self.serializer_class(
+            instance=queryset, 
+            context={ "request": request },
+            many=True
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         request.data['owner'] = request.user.pk
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(
+            data=request.data,
+            context={ "request": request }
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -34,7 +41,10 @@ class ImageDetailOrDelete(APIView):
 
     def get(self, request, pk, *args, **kwargs):
         image = get_object_or_404(models.Image, pk=pk, owner=request.user)
-        serializer = self.serializer_class(instance=image)
+        serializer = self.serializer_class(
+            instance=image, 
+            context={ "request": request }
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request, pk, *args, **kwargs):
